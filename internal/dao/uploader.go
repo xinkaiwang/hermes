@@ -46,7 +46,7 @@ func GetSplunkEndpoint() string {
 }
 
 func GetSplunkToken() string {
-	str := os.Getenv("SPLUNK_TOKEN") // exp: 58DE661B-AA5A-44C2-A658-16E8D240E78A
+	str := os.Getenv("SPLUNK_TOKEN") // exp: 58DE661B-AA5A-44C2-A658-XXXXXXXXXXXX
 	if str == "" {
 		ke := kerror.Create("SPLUNK_TOKENNotSet", "")
 		panic(ke)
