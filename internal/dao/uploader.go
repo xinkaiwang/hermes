@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -65,7 +66,14 @@ func (uploader *SplunkUploader) Upload(object map[string]interface{}) string {
 	url := fmt.Sprintf("%s/services/collector/event", GetSplunkEndpoint())
 	token := GetSplunkToken()
 
-	jsonData, err := json.Marshal(object)
+	// Wrap the event data in the proper Splunk HEC format
+	splunkEvent := map[string]interface{}{
+		"event":      object,
+		"sourcetype": "json",
+		"index":      "main",
+	}
+
+	jsonData, err := json.Marshal(splunkEvent)
 	if err != nil {
 		ke := kerror.Wrap(err, "MarshallingFailed", "", false)
 		panic(ke)
@@ -87,6 +95,14 @@ func (uploader *SplunkUploader) Upload(object map[string]interface{}) string {
 		panic(ke)
 	}
 	defer response.Body.Close()
+
+	// Read response body for debugging
+	if response.StatusCode != 200 {
+		body, readErr := io.ReadAll(response.Body)
+		if readErr == nil {
+			fmt.Printf("Splunk error response: %s\n", string(body))
+		}
+	}
 
 	return response.Status
 }
