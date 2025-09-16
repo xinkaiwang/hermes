@@ -15,6 +15,15 @@ var (
 	currentUploader Uploader
 )
 
+type EventJson struct {
+	Event      map[string]interface{} `json:"event"`                // exp: {"msg":"hello","level":"info"}
+	Time       int64                  `json:"time,omitempty"`       // epoch ms exp: 1726339200000
+	Host       string                 `json:"host,omitempty"`       // exp: 127.0.0.1
+	Source     string                 `json:"source,omitempty"`     // exp: /var/log/syslog
+	SourceType string                 `json:"sourcetype,omitempty"` // exp: syslog
+	Index      string                 `json:"index,omitempty"`      // exp: main
+}
+
 func GetUploader() Uploader {
 	if currentUploader == nil {
 		currentUploader = NewSplunkUploader()
@@ -23,7 +32,7 @@ func GetUploader() Uploader {
 }
 
 type Uploader interface {
-	Upload(object map[string]interface{}) string
+	Upload(eventJson *EventJson) string
 }
 
 type SplunkUploader struct {
@@ -61,23 +70,24 @@ func GetSplunkToken() string {
 	  -H "Content-Type: application/json" \
 	  -d '{"event":{"msg":"hello","level":"info"},"sourcetype":"json","index":"main"}'
 */
-func (uploader *SplunkUploader) Upload(object map[string]interface{}) string {
+func (uploader *SplunkUploader) Upload(eve *EventJson) string {
 	// prepare data
 	url := fmt.Sprintf("%s/services/collector/event", GetSplunkEndpoint())
 	token := GetSplunkToken()
 
-	// Wrap the event data in the proper Splunk HEC format
-	splunkEvent := map[string]interface{}{
-		"event":      object,
-		"sourcetype": "json",
-		"index":      "main",
-	}
+	// // Wrap the event data in the proper Splunk HEC format
+	// splunkEvent := map[string]interface{}{
+	// 	"event":      object,
+	// 	"sourcetype": "json",
+	// 	"index":      "main",
+	// }
 
-	jsonData, err := json.Marshal(splunkEvent)
+	jsonData, err := json.Marshal(eve)
 	if err != nil {
 		ke := kerror.Wrap(err, "MarshallingFailed", "", false)
 		panic(ke)
 	}
+	fmt.Println(string(jsonData))
 
 	// prepare request
 	request, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
