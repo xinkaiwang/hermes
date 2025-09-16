@@ -14,12 +14,17 @@ GOFLAGS := -ldflags "$(LDFLAGS)"
 
 .PHONY: all hello test clean run
 
-all: hello
+all: hello hermes
 
 hello:
 	@echo "Building hello..."
 	@mkdir -p bin
 	go build $(GOFLAGS) -o bin/hello ./cmd/hello
+
+hermes:
+	@echo "Building hello..."
+	@mkdir -p bin
+	go build $(GOFLAGS) -o bin/hermes ./service/hermes
 
 test:
 	@echo "Running tests..."

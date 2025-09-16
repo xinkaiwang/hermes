@@ -43,7 +43,6 @@ func (b *BatchUploader) Start() {
 	var sb strings.Builder
 	batchSize := 0
 	for !stop {
-		klogging.Debug(b.ctx).Log("BatchUploader", "Step1")
 		// forever loop
 		// 1. if chan not empty, append to payload
 		// 2. upload if a) maxEvents reached or b) maxSize reached or c) chan empty
@@ -77,7 +76,7 @@ func (b *BatchUploader) Start() {
 				batchSize = 0
 			}
 		case <-time.After(time.Duration(maxDelayMs) * time.Millisecond):
-			klogging.Debug(b.ctx).With("batchSize", batchSize).Log("BatchUploader", "Step3")
+			// klogging.Debug(b.ctx).With("batchSize", batchSize).Log("BatchUploader", "Step3")
 			if batchSize > 0 {
 				b.Upload(sb.String(), batchSize)
 				sb.Reset()
