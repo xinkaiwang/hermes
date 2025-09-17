@@ -7,10 +7,10 @@ BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 LDFLAGS := -X github.com/xinkaiwang/hermes/internal/common.Version=$(VERSION) -X github.com/xinkaiwang/hermes/internal/common.GitCommit=$(GIT_COMMIT) -X github.com/xinkaiwang/hermes/internal/common.BuildTime=$(BUILD_TIME)
 GOFLAGS := -ldflags "$(LDFLAGS)"
 
-# # Docker 相关变量
-# DOCKER_REPO := xinkaiw
-# DOCKER_IMAGE := helloblitz
-# DOCKER_TAG := $(VERSION)
+# Docker 相关变量
+DOCKER_REPO := xinkaiw
+DOCKER_IMAGE := hermes
+DOCKER_TAG := v$(VERSION)
 
 .PHONY: all hello test clean run
 
@@ -25,6 +25,15 @@ hermes:
 	@echo "Building hello..."
 	@mkdir -p bin
 	go build $(GOFLAGS) -o bin/hermes ./service/hermes
+
+# Docker 相关目标
+docker-build:
+	@echo "Building Docker image $(DOCKER_REPO)/$(DOCKER_IMAGE):$(DOCKER_TAG)..."
+	docker build -t $(DOCKER_REPO)/$(DOCKER_IMAGE):$(DOCKER_TAG) -f Dockerfile .
+
+docker-push:
+	@echo "Pushing Docker image $(DOCKER_REPO)/$(DOCKER_IMAGE):$(DOCKER_TAG)..."
+	docker push $(DOCKER_REPO)/$(DOCKER_IMAGE):$(DOCKER_TAG)
 
 test:
 	@echo "Running tests..."

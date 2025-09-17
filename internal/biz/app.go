@@ -28,3 +28,27 @@ func (a *App) Ping(ctx context.Context) api.PingResponse {
 		Version:   common.GetVersion(),
 	}
 }
+
+func (a *App) Post(ctx context.Context, req api.PostRequest) api.PostResponse {
+	for _, event := range req.Events {
+		eve := &dao.EventJson{
+			Event: event,
+		}
+		if req.Host != "" {
+			eve.Host = req.Host
+		}
+		if req.Source != "" {
+			eve.Source = req.Source
+		}
+		if req.SourceType != "" {
+			eve.SourceType = req.SourceType
+		}
+		if req.Index != "" {
+			eve.Index = req.Index
+		}
+		a.batchUploader.ChEvents <- eve
+	}
+	return api.PostResponse{
+		Count: len(req.Events),
+	}
+}
