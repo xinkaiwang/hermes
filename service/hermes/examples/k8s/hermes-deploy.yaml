@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes
+  namespace: hermes
+  labels:
+    app: hermes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hermes
+  template:
+    metadata:
+      labels:
+        app: hermes
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+      - name: hermes
+        image: xinkaiw/hermes:v0.1.1
+        imagePullPolicy: IfNotPresent       # 开发环境可以使用 IfNotPresent 以加快部署速度
+        env:
+        - name: API_PORT
+          value: "8080"
+        - name: METRICS_PORT
+          value: "9090"
+        - name: LOG_LEVEL
+          value: "debug"  # 可选值：debug, info, warn, error
+        - name: LOG_FORMAT
+          value: "json"   # 可选值：json, text
+        - name: SPLUNK_ENDPOINT
+          value: "http://xxx.xxxxx.com:8088"
+        - name: SPLUNK_TOKEN
+          value: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        readinessProbe:
+          httpGet:
+            path: /api/ping
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/ping
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      nodeSelector:
+        doks.digitalocean.com/node-pool: monitor-pool  # 使用节点池
