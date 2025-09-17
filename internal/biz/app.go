@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/xinkaiwang/hermes/api"
@@ -29,13 +30,16 @@ func (a *App) Ping(ctx context.Context) api.PingResponse {
 	}
 }
 
-func (a *App) Post(ctx context.Context, req api.PostRequest) api.PostResponse {
+func (a *App) Post(ctx context.Context, req api.PostRequest, remoteAddr string) api.PostResponse {
 	for _, event := range req.Events {
 		eve := &dao.EventJson{
 			Event: event,
 		}
+		eve.Time = parseTime(event["time"])
 		if req.Host != "" {
 			eve.Host = req.Host
+		} else {
+			eve.Host = remoteAddr
 		}
 		if req.Source != "" {
 			eve.Source = req.Source
@@ -57,4 +61,27 @@ func (a *App) Post(ctx context.Context, req api.PostRequest) api.PostResponse {
 	return api.PostResponse{
 		Count: len(req.Events),
 	}
+}
+
+func parseTime(timeVal interface{}) int64 {
+	if timeVal == nil {
+		return time.Now().UnixMilli()
+	}
+	if timeStr, ok := timeVal.(string); ok {
+		// try to parse to int64
+		int64Val, err := strconv.ParseInt(timeStr, 10, 64)
+		if err == nil {
+			return int64Val
+		}
+
+		// try to parse to time.Time
+		t, err := time.Parse(time.RFC3339, timeStr)
+		if err == nil {
+			return t.UnixMilli()
+		}
+	}
+	if int64Val, ok := timeVal.(int64); ok {
+		return int64Val
+	}
+	return time.Now().UnixMilli()
 }

@@ -88,7 +88,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 	// 处理请求
 	var resp api.PostResponse
 	kmetrics.InstrumentSummaryRunVoid(r.Context(), "biz.Post", func() {
-		resp = h.app.Post(r.Context(), req)
+		resp = h.app.Post(r.Context(), req, r.RemoteAddr)
 	}, "")
 
 	// 记录响应信息
