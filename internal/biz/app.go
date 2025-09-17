@@ -39,12 +39,18 @@ func (a *App) Post(ctx context.Context, req api.PostRequest) api.PostResponse {
 		}
 		if req.Source != "" {
 			eve.Source = req.Source
+		} else {
+			eve.Source = "hermes"
 		}
 		if req.SourceType != "" {
 			eve.SourceType = req.SourceType
+		} else {
+			eve.SourceType = "json"
 		}
 		if req.Index != "" {
 			eve.Index = req.Index
+		} else {
+			eve.Index = "main"
 		}
 		a.batchUploader.ChEvents <- eve
 	}

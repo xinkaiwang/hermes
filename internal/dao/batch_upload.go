@@ -13,6 +13,12 @@ import (
 	"github.com/xinkaiwang/shardmanager/libs/xklib/kcommon"
 	"github.com/xinkaiwang/shardmanager/libs/xklib/kerror"
 	"github.com/xinkaiwang/shardmanager/libs/xklib/klogging"
+	"github.com/xinkaiwang/shardmanager/libs/xklib/kmetrics"
+)
+
+var (
+	UploadBytesMetric     = kmetrics.CreateKmetric(context.Background(), "splunk_upload_bytes", "desc", []string{})
+	UploadElapsedMsMetric = kmetrics.CreateKmetric(context.Background(), "splunk_upload_elapsed_ms", "desc", []string{})
 )
 
 type BatchUploader struct {
@@ -120,6 +126,8 @@ func (b *BatchUploader) Upload(payload string, count int) string { // count is t
 	}
 
 	elapsedMs := kcommon.GetMonoTimeMs() - startTimeMs
+	UploadBytesMetric.GetTimeSequence(b.ctx).Add(int64(size))
+	UploadElapsedMsMetric.GetTimeSequence(b.ctx).Add(int64(elapsedMs))
 	klogging.Info(b.ctx).With("response", response.Status).With("size", size).With("elapsedMs", elapsedMs).With("count", count).Log("Upload", "Completed")
 	return response.Status
 }
